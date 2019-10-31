@@ -1,7 +1,5 @@
 package com.github.sn;
 
-import org.apache.http.entity.ContentType;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +8,6 @@ public class RequestObject {
     private String baseUrl;
     private String endpoint;
     private String body;
-    private ContentType contentType;
     private final Map<String, String> headers;
     private final Map<String, String> queryParams;
 
@@ -27,14 +24,6 @@ public class RequestObject {
         this.clearBody();
         this.clearHeaders();
         this.clearQueryParams();
-    }
-
-    public ContentType getContentType() {
-        return contentType;
-    }
-
-    public void setContentType(ContentType contentType) {
-        this.contentType = contentType;
     }
 
     public void addQueryParam(String key, String value) {

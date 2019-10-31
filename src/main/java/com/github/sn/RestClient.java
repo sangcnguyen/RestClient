@@ -1,14 +1,13 @@
 package com.github.sn;
 
 import org.apache.http.Header;
-import org.apache.http.HttpMessage;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -22,12 +21,26 @@ import java.util.Map;
 
 public class RestClient implements Closeable {
     private CloseableHttpClient httpClient;
-    private boolean test;
-    private boolean createdHttpClient;
 
     public RestClient() {
-        this.httpClient = HttpClients.createDefault();
-        this.createdHttpClient = true;
+        RequestConfig.Builder requestBuilder = RequestConfig.custom();
+        // this one causes a timeout if a connection is established but there is
+        // no response within 100 seconds
+        requestBuilder.setConnectTimeout(100 * 1000);
+        requestBuilder.setConnectionRequestTimeout(100 * 1000);
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setDefaultRequestConfig(requestBuilder.build());
+        this.httpClient = builder.build();
+    }
+
+    public RestClient(int defaultTimeOutInSeconds) {
+        RequestConfig.Builder requestBuilder = RequestConfig.custom();
+        requestBuilder.setConnectTimeout(defaultTimeOutInSeconds * 1000);
+        requestBuilder.setConnectionRequestTimeout(defaultTimeOutInSeconds * 1000);
+        //this.httpClient = HttpClients.createDefault();
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setDefaultRequestConfig(requestBuilder.build());
+        this.httpClient = builder.build();
     }
 
     public ResponseObject sendRequest(RequestObject request) throws IOException {
@@ -62,7 +75,7 @@ public class RestClient implements Closeable {
         URI uri;
         HttpGet httpGet;
         try {
-            uri = buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
             httpGet = new HttpGet(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -81,7 +94,7 @@ public class RestClient implements Closeable {
         HttpPost httpPost;
 
         try {
-            uri = buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
             httpPost = new HttpPost(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -94,9 +107,7 @@ public class RestClient implements Closeable {
         }
 
         httpPost.setEntity(new StringEntity(request.getBody(), StandardCharsets.UTF_8));
-        if (request.getContentType() == null) {
-            writeDefaultContentType(request, httpPost);
-        }
+        setDefaultHeaderIfHasBodyContent(request);
 
         return executeApi(httpPost);
     }
@@ -106,7 +117,7 @@ public class RestClient implements Closeable {
         HttpPut httpPut;
 
         try {
-            uri = buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
             httpPut = new HttpPut(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -119,9 +130,7 @@ public class RestClient implements Closeable {
         }
 
         httpPut.setEntity(new StringEntity(request.getBody(), StandardCharsets.UTF_8));
-        if (request.getContentType() == null) {
-            writeDefaultContentType(request, httpPut);
-        }
+        setDefaultHeaderIfHasBodyContent(request);
 
         return executeApi(httpPut);
     }
@@ -130,7 +139,7 @@ public class RestClient implements Closeable {
         URI uri;
         HttpPatch httpPatch;
         try {
-            uri = buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
             httpPatch = new HttpPatch(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -143,9 +152,7 @@ public class RestClient implements Closeable {
         }
 
         httpPatch.setEntity(new StringEntity(request.getBody(), StandardCharsets.UTF_8));
-        if (request.getContentType() == null) {
-            writeDefaultContentType(request, httpPatch);
-        }
+        setDefaultHeaderIfHasBodyContent(request);
 
         return executeApi(httpPatch);
     }
@@ -155,7 +162,7 @@ public class RestClient implements Closeable {
         HttpDelete httpDelete;
 
         try {
-            uri = buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
             httpDelete = new HttpDelete(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -184,32 +191,6 @@ public class RestClient implements Closeable {
         }
     }
 
-    private URI buildUri(String baseUri, String endpoint, Map<String, String> queryParams) throws URISyntaxException {
-        URIBuilder uriBuilder = new URIBuilder();
-        URI uri;
-        if (this.test = true) {
-            uriBuilder.setScheme("http");
-        } else {
-            uriBuilder.setScheme("https");
-        }
-
-        uriBuilder.setHost(baseUri);
-        uriBuilder.setPath(endpoint);
-
-        if (queryParams != null) {
-            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-                uriBuilder.setParameter(entry.getKey(), entry.getValue());
-            }
-        }
-
-        try {
-            uri = uriBuilder.build();
-        } catch (URISyntaxException ex) {
-            throw ex;
-        }
-        return uri;
-    }
-
     public ResponseObject getResponse(CloseableHttpResponse response) throws IOException {
         ResponseHandler<String> handler = new CustomResponseHandler();
         String responseBody = handler.handleResponse(response);
@@ -223,9 +204,9 @@ public class RestClient implements Closeable {
         return new ResponseObject(statusCode, responseBody, responseHeader);
     }
 
-    private void writeDefaultContentType(RequestObject request, HttpMessage httpMessage) {
-        if (!"".equals(request.getBody())) {
-            httpMessage.setHeader("Content-Type", "application/json");
+    private void setDefaultHeaderIfHasBodyContent(RequestObject request) {
+        if (request.getHeaders() == null && !"".equals(request.getBody())) {
+            request.addHeader("Content-Type", "application/json");
         }
     }
 
