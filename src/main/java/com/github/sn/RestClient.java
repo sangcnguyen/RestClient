@@ -93,8 +93,10 @@ public class RestClient implements Closeable {
             }
         }
 
-        httpPost.setEntity(new StringEntity((String) request.getBody(), StandardCharsets.UTF_8));
-        writeContentTypeIfNeeded(request, httpPost);
+        httpPost.setEntity(new StringEntity(request.getBody(), StandardCharsets.UTF_8));
+        if (request.getContentType() == null) {
+            writeDefaultContentType(request, httpPost);
+        }
 
         return executeApi(httpPost);
     }
@@ -117,7 +119,9 @@ public class RestClient implements Closeable {
         }
 
         httpPut.setEntity(new StringEntity(request.getBody(), StandardCharsets.UTF_8));
-        writeContentTypeIfNeeded(request, httpPut);
+        if (request.getContentType() == null) {
+            writeDefaultContentType(request, httpPut);
+        }
 
         return executeApi(httpPut);
     }
@@ -139,7 +143,9 @@ public class RestClient implements Closeable {
         }
 
         httpPatch.setEntity(new StringEntity(request.getBody(), StandardCharsets.UTF_8));
-        writeContentTypeIfNeeded(request, httpPatch);
+        if (request.getContentType() == null) {
+            writeDefaultContentType(request, httpPatch);
+        }
 
         return executeApi(httpPatch);
     }
@@ -217,7 +223,7 @@ public class RestClient implements Closeable {
         return new ResponseObject(statusCode, responseBody, responseHeader);
     }
 
-    private void writeContentTypeIfNeeded(RequestObject request, HttpMessage httpMessage) {
+    private void writeDefaultContentType(RequestObject request, HttpMessage httpMessage) {
         if (!"".equals(request.getBody())) {
             httpMessage.setHeader("Content-Type", "application/json");
         }
