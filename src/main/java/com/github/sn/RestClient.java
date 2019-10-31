@@ -21,6 +21,7 @@ import java.util.Map;
 
 public class RestClient implements Closeable {
     private CloseableHttpClient httpClient;
+    private URI uri;
 
     public RestClient() {
         RequestConfig.Builder requestBuilder = RequestConfig.custom();
@@ -72,7 +73,6 @@ public class RestClient implements Closeable {
     }
 
     public ResponseObject get(RequestObject request) throws URISyntaxException, IOException {
-        URI uri;
         HttpGet httpGet;
         try {
             uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
@@ -90,7 +90,6 @@ public class RestClient implements Closeable {
     }
 
     public ResponseObject post(RequestObject request) throws URISyntaxException, IOException {
-        URI uri;
         HttpPost httpPost;
 
         try {
@@ -113,7 +112,6 @@ public class RestClient implements Closeable {
     }
 
     public ResponseObject put(RequestObject request) throws URISyntaxException, IOException {
-        URI uri;
         HttpPut httpPut;
 
         try {
@@ -136,7 +134,6 @@ public class RestClient implements Closeable {
     }
 
     public ResponseObject patch(RequestObject request) throws URISyntaxException, IOException {
-        URI uri;
         HttpPatch httpPatch;
         try {
             uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
@@ -158,7 +155,6 @@ public class RestClient implements Closeable {
     }
 
     public ResponseObject delete(RequestObject request) throws URISyntaxException, IOException {
-        URI uri;
         HttpDelete httpDelete;
 
         try {
