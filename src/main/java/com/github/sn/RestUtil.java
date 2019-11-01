@@ -12,13 +12,14 @@ public class RestUtil {
         throw new IllegalStateException("Utility class");
     }
 
-    public static URI buildUrl(String baseUrl, String endpoint, Map<String, String> queryParams) throws URISyntaxException {
+    public static URI buildUri(String baseUrl, String endpoint, Map<String, String> queryParams, boolean isHttp) throws URISyntaxException {
         URIBuilder uriBuilder = new URIBuilder();
         URI uri;
-        if (!baseUrl.startsWith("http")) {
+        if (isHttp) {
             uriBuilder.setScheme("http");
+        } else {
+            uriBuilder.setScheme("https");
         }
-
         uriBuilder.setHost(baseUrl);
         uriBuilder.setPath(endpoint);
 
@@ -33,6 +34,7 @@ public class RestUtil {
         } catch (URISyntaxException ex) {
             throw ex;
         }
+
         return uri;
     }
 }

@@ -22,26 +22,38 @@ import java.util.Map;
 public class RestClient implements Closeable {
     private CloseableHttpClient httpClient;
     private URI uri;
+    private boolean isHttp;
 
+    /**
+     * Constructor for using the default CloseableHttpClient.
+     */
     public RestClient() {
-        RequestConfig.Builder requestBuilder = RequestConfig.custom();
-        // this one causes a timeout if a connection is established but there is
-        // no response within 100 seconds
-        requestBuilder.setConnectTimeout(100 * 1000);
-        requestBuilder.setConnectionRequestTimeout(100 * 1000);
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setDefaultRequestConfig(requestBuilder.build());
-        this.httpClient = builder.build();
+        this(100, true);
     }
 
+    /**
+     * Constructor for passing in a  an httpClient and isHttp parameter to allow for http/https calls
+     */
+    public RestClient(boolean isHttp) {
+        this(100, isHttp);
+    }
+
+    /**
+     * Constructor for passing in a  an httpClient
+     * and defaultTimeOutInSeconds parameter to allow for set connection timeout
+     */
     public RestClient(int defaultTimeOutInSeconds) {
+        this(defaultTimeOutInSeconds, true);
+    }
+
+    public RestClient(int defaultTimeOutInSeconds, boolean isHttp) {
         RequestConfig.Builder requestBuilder = RequestConfig.custom();
         requestBuilder.setConnectTimeout(defaultTimeOutInSeconds * 1000);
         requestBuilder.setConnectionRequestTimeout(defaultTimeOutInSeconds * 1000);
-        //this.httpClient = HttpClients.createDefault();
         HttpClientBuilder builder = HttpClientBuilder.create();
         builder.setDefaultRequestConfig(requestBuilder.build());
         this.httpClient = builder.build();
+        this.isHttp = isHttp;
     }
 
     public ResponseObject sendRequest(RequestObject request) throws IOException {
@@ -75,7 +87,7 @@ public class RestClient implements Closeable {
     public ResponseObject get(RequestObject request) throws URISyntaxException, IOException {
         HttpGet httpGet;
         try {
-            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
             httpGet = new HttpGet(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -86,14 +98,14 @@ public class RestClient implements Closeable {
                 httpGet.setHeader(entry.getKey(), entry.getValue());
             }
         }
+
         return executeApi(httpGet);
     }
 
     public ResponseObject post(RequestObject request) throws URISyntaxException, IOException {
         HttpPost httpPost;
-
         try {
-            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
             httpPost = new HttpPost(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -115,7 +127,7 @@ public class RestClient implements Closeable {
         HttpPut httpPut;
 
         try {
-            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
             httpPut = new HttpPut(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -136,7 +148,7 @@ public class RestClient implements Closeable {
     public ResponseObject patch(RequestObject request) throws URISyntaxException, IOException {
         HttpPatch httpPatch;
         try {
-            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
             httpPatch = new HttpPatch(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;
@@ -156,9 +168,8 @@ public class RestClient implements Closeable {
 
     public ResponseObject delete(RequestObject request) throws URISyntaxException, IOException {
         HttpDelete httpDelete;
-
         try {
-            uri = RestUtil.buildUrl(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams());
+            uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
             httpDelete = new HttpDelete(uri.toString());
         } catch (URISyntaxException ex) {
             throw ex;

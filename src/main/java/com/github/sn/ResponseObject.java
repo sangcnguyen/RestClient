@@ -1,9 +1,5 @@
 package com.github.sn;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParser;
-
 import java.util.Map;
 
 public class ResponseObject {
@@ -23,11 +19,6 @@ public class ResponseObject {
 
     public String getBody() {
         return this.body;
-    }
-
-    public String getPrettyBody() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return gson.toJson(JsonParser.parseString(getBody()));
     }
 
     public Map<String, String> getHeaders() {
@@ -50,6 +41,6 @@ public class ResponseObject {
     public String toString() {
         return "Status code: " + getStatusCode() +
                 "\nHeaders: " + getHeaders() +
-                "\nResponse: \n" + getPrettyBody();
+                "\nResponse: \n" + getBody();
     }
 }
