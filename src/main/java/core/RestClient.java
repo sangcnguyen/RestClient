@@ -32,14 +32,14 @@ public class RestClient implements Closeable {
     }
 
     /**
-     * Constructor for passing in a  an httpClient and isHttp parameter to allow for http/https calls
+     * Constructor for passing in a an httpClient and isHttp parameter to allow for http/https calls
      */
     public RestClient(boolean isHttp) {
         this(100, isHttp);
     }
 
     /**
-     * Constructor for passing in a  an httpClient
+     * Constructor for passing in a an httpClient
      * and defaultTimeOutInSeconds parameter to allow for set connection timeout
      */
     public RestClient(int defaultTimeOutInSeconds) {
@@ -59,7 +59,7 @@ public class RestClient implements Closeable {
     public ResponseObject sendRequest(RequestObject request) throws IOException {
         try {
             if (request.getMethodType() == null) {
-                throw new IOException("We only support GET, POST, PUT, PATCH and DELETE.");
+                throw new IOException("Only support GET, POST, PUT, PATCH and DELETE.");
             }
             switch (request.getMethodType()) {
                 case GET:
@@ -73,7 +73,7 @@ public class RestClient implements Closeable {
                 case DELETE:
                     return delete(request);
                 default:
-                    throw new IOException("We only support GET, POST, PUT, PATCH and DELETE.");
+                    throw new IOException("Only support GET, POST, PUT, PATCH and DELETE.");
             }
         } catch (IOException ex) {
             throw ex;

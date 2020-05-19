@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-public class SimpleRestTest {
+public class RestClientTest {
     private RequestObject requestObject;
     private RestClient restClient;
 

@@ -1,4 +1,4 @@
-package com.github.sn;
+package core;
 
 import org.apache.http.client.utils.URIBuilder;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 public class RestUtil {
 
     private RestUtil() {
-        throw new IllegalStateException("Utility class");
+        throw new IllegalStateException("Can't instantiate the RestUtil class");
     }
 
     public static URI buildUri(String baseUrl, String endpoint, Map<String, String> queryParams, boolean isHttp) throws URISyntaxException {
