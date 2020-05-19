@@ -1,4 +1,6 @@
-package com.github.sn;
+package core;
+
+import util.JsonUtil;
 
 import java.util.Map;
 
@@ -25,22 +27,10 @@ public class ResponseObject {
         return this.headers;
     }
 
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
-    }
-
     @Override
     public String toString() {
         return "Status code: " + getStatusCode() +
                 "\nHeaders: " + getHeaders() +
-                "\nResponse: \n" + getBody();
+                "\nResponse: \n" + JsonUtil.getPrettyString(getBody());
     }
 }
