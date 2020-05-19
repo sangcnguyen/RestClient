@@ -1,4 +1,4 @@
-package com.github.sn;
+package core;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

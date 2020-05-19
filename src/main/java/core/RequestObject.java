@@ -1,4 +1,6 @@
-package com.github.sn;
+package core;
+
+import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +9,7 @@ public class RequestObject {
     private MethodType method;
     private String baseUrl;
     private String endpoint;
-    private String body;
+    private JsonObject body;
     private final Map<String, String> headers;
     private final Map<String, String> queryParams;
 
@@ -54,7 +56,7 @@ public class RequestObject {
         this.endpoint = endpoint;
     }
 
-    public void setBody(String body) {
+    public void setBody(JsonObject body) {
         this.body = body;
     }
 
@@ -78,7 +80,7 @@ public class RequestObject {
         return this.endpoint;
     }
 
-    public String getBody() {
+    public JsonObject getBody() {
         return this.body;
     }
 
@@ -95,7 +97,7 @@ public class RequestObject {
     }
 
     private void clearBody() {
-        this.body = "";
+        this.body = null;
     }
 
     private void clearQueryParams() {
@@ -104,5 +106,17 @@ public class RequestObject {
 
     private void clearHeaders() {
         this.headers.clear();
+    }
+
+    @Override
+    public String toString() {
+        return "RequestObject{ " +
+                "method=" + method +
+                ", baseUrl='" + baseUrl + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                ", body='" + body + '\'' +
+                ", headers=" + headers +
+                ", queryParams=" + queryParams +
+                " }";
     }
 }

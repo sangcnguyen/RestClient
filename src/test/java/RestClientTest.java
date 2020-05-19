@@ -1,38 +1,69 @@
-import com.github.sn.MethodType;
-import com.github.sn.RequestObject;
-import com.github.sn.ResponseObject;
-import com.github.sn.RestClient;
+import com.google.gson.JsonObject;
+import core.MethodType;
+import core.RequestObject;
+import core.ResponseObject;
+import core.RestClient;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-
 public class RestClientTest {
-    private RequestObject requestObject;
+    private RequestObject request;
     private RestClient restClient;
 
     @BeforeClass
     public void setUp() {
-        requestObject = new RequestObject();
-        restClient = new RestClient();
-        requestObject.setBaseUrl("dummy.restapiexample.com/api/v1");
+        request = new RequestObject();
+        restClient = new RestClient(false);
+        request.setBaseUrl("reqres.in/api/");
     }
 
+    @AfterClass
+    public void tearDown() {
+        restClient.close();
+    }
 
     @Test
-    public void testGetMethod() throws IOException {
-        requestObject.setEndpoint("/employees");
-        requestObject.setMethod(MethodType.GET);
-        ResponseObject response = restClient.sendRequest(requestObject);
+    public void testGetMethod() {
+        request.setEndpoint("users?page=2");
+        request.setMethod(MethodType.GET);
+        ResponseObject response = restClient.sendRequest(request);
+        System.out.println(request.toString());
         System.out.println(response.toString());
     }
 
     @Test
-    public void testPostMethod() throws IOException {
-        requestObject.setEndpoint("/create");
-        requestObject.setMethod(MethodType.POST);
-        requestObject.setBody("{\"name\":\"testes\",\"salary\":\"123\",\"age\":\"222223\"}");
-        ResponseObject response = restClient.sendRequest(requestObject);
+    public void testPostMethod() {
+        request.setEndpoint("users");
+        request.setMethod(MethodType.POST);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("name", "sang");
+        jsonObject.addProperty("job", "tester");
+        request.setBody(jsonObject);
+        ResponseObject response = restClient.sendRequest(request);
+        System.out.println(request.toString());
+        System.out.println(response.toString());
+    }
+
+    @Test
+    public void testPutMethod() {
+        request.setEndpoint("users/2");
+        request.setMethod(MethodType.PUT);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("name", "sang");
+        jsonObject.addProperty("job", "leader");
+        request.setBody(jsonObject);
+        ResponseObject response = restClient.sendRequest(request);
+        System.out.println(request.toString());
+        System.out.println(response.toString());
+    }
+
+    @Test
+    public void testDeleteMethod() {
+        request.setEndpoint("users/2");
+        request.setMethod(MethodType.DELETE);
+        ResponseObject response = restClient.sendRequest(request);
+        // System.out.println(request.toString());
         System.out.println(response.toString());
     }
 }
