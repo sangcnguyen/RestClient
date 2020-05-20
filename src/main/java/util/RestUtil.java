@@ -8,24 +8,24 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 public class RestUtil {
-    private static final Logger logger = LoggerUtil.getLogger();
+    private static final Logger LOG = LoggerUtil.getLogger();
 
     private RestUtil() {
         throw new IllegalStateException("Can't instantiate the RestUtil class");
     }
 
-    public static URI buildUri(String baseUrl, String endpoint, Map<String, String> queryParams, boolean isHttp) {
+    public static URI buildUri(String baseUrl, String endpoint, Map<String, String> queryParams) {
         URIBuilder uriBuilder = new URIBuilder();
         URI uri = null;
+        String newBaseUrl = "";
 
-        if (isHttp) {
+        if (baseUrl.contains("http://")) {
+            newBaseUrl = baseUrl.replace("http://", "");
             uriBuilder.setScheme("http");
         } else {
+            newBaseUrl = baseUrl.replace("https://", "");
             uriBuilder.setScheme("https");
         }
-
-        uriBuilder.setHost(baseUrl);
-        uriBuilder.setPath(endpoint);
 
         if (queryParams != null) {
             for (Map.Entry<String, String> entry : queryParams.entrySet()) {
@@ -33,10 +33,13 @@ public class RestUtil {
             }
         }
 
+        uriBuilder.setHost(newBaseUrl);
+        uriBuilder.setPath(endpoint);
+
         try {
             uri = uriBuilder.build();
         } catch (URISyntaxException ex) {
-            logger.error("Invalid url", ex);
+            LOG.error("Unable to build url", ex);
         }
 
         return uri;

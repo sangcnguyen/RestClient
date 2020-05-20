@@ -12,14 +12,14 @@ public class RestClientTest {
     private RestClient restClient;
 
     @BeforeClass
-    public void setUp() {
+    public void beforeClass() {
         request = new RequestObject();
-        restClient = new RestClient(false);
-        request.setBaseUrl("reqres.in/api/");
+        restClient = new RestClient();
+        restClient.setBaseUrl("reqres.in/api/");
     }
 
     @AfterClass
-    public void tearDown() {
+    public void afterClass() {
         restClient.close();
     }
 
@@ -63,7 +63,7 @@ public class RestClientTest {
         request.setEndpoint("users/2");
         request.setMethod(MethodType.DELETE);
         ResponseObject response = restClient.sendRequest(request);
-        // System.out.println(request.toString());
+        System.out.println(request.toString());
         System.out.println(response.toString());
     }
 }

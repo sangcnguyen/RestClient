@@ -1,5 +1,6 @@
 package core;
 
+import com.google.gson.JsonElement;
 import org.apache.http.Header;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
@@ -8,6 +9,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
+import util.JsonUtil;
 import util.LoggerUtil;
 import util.RestUtil;
 
@@ -19,48 +21,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RestClient implements Closeable {
-    private static final Logger logger = LoggerUtil.getLogger();
+    private static final Logger LOG = LoggerUtil.getLogger();
     private CloseableHttpClient httpClient;
     private URI uri;
-    private boolean isHttp;
+    private String BASE_URL = "";
 
     /**
      * Constructor for using the default CloseableHttpClient.
      */
     public RestClient() {
-        this(100, true);
+        this(100);
     }
 
-    /**
-     * Constructor for passing in a an httpClient and isHttp parameter to allow for http/https calls
-     */
-    public RestClient(boolean isHttp) {
-        this(100, isHttp);
-    }
-
-    /**
-     * Constructor for passing in a an httpClient
-     * and defaultTimeOutInSeconds parameter to allow for set connection timeout
-     */
     public RestClient(int defaultTimeOutInSeconds) {
-        this(defaultTimeOutInSeconds, true);
-    }
-
-    public RestClient(int defaultTimeOutInSeconds, boolean isHttp) {
         RequestConfig.Builder requestBuilder = RequestConfig.custom();
         requestBuilder.setConnectTimeout(defaultTimeOutInSeconds * 1000);
         requestBuilder.setConnectionRequestTimeout(defaultTimeOutInSeconds * 1000);
         HttpClientBuilder builder = HttpClientBuilder.create();
         builder.setDefaultRequestConfig(requestBuilder.build());
         this.httpClient = builder.build();
-        this.isHttp = isHttp;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.BASE_URL = baseUrl;
     }
 
     public ResponseObject sendRequest(RequestObject request) {
         ResponseObject responseObject = null;
-        if (request.getMethodType() == null) {
-            logger.error("Only support GET, POST, PUT, PATCH and DELETE.");
-        }
 
         switch (request.getMethodType()) {
             case GET:
@@ -79,7 +66,7 @@ public class RestClient implements Closeable {
                 responseObject = delete(request);
                 break;
             default:
-                logger.error("Only support GET, POST, PUT, PATCH and DELETE.");
+                LOG.error("Only support GET, POST, PUT, PATCH and DELETE.");
         }
 
         return responseObject;
@@ -88,8 +75,12 @@ public class RestClient implements Closeable {
     public ResponseObject get(RequestObject request) {
         HttpGet httpGet;
 
-        uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
-        httpGet = new HttpGet(uri.toString());
+        if (request.getRestUrl().isEmpty()) {
+            uri = RestUtil.buildUri(BASE_URL, request.getEndpoint(), request.getQueryParams());
+            httpGet = new HttpGet(uri.toString());
+        } else {
+            httpGet = new HttpGet(request.getRestUrl());
+        }
 
 
         if (request.getHeaders() != null) {
@@ -104,10 +95,12 @@ public class RestClient implements Closeable {
     public ResponseObject post(RequestObject request) {
         HttpPost httpPost;
 
-
-        uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
-        httpPost = new HttpPost(uri.toString());
-
+        if (request.getRestUrl().isEmpty()) {
+            uri = RestUtil.buildUri(BASE_URL, request.getEndpoint(), request.getQueryParams());
+            httpPost = new HttpPost(uri.toString());
+        } else {
+            httpPost = new HttpPost(request.getRestUrl());
+        }
 
         if (request.getHeaders() != null) {
             for (Map.Entry<String, String> entry : request.getHeaders().entrySet()) {
@@ -124,10 +117,12 @@ public class RestClient implements Closeable {
     public ResponseObject put(RequestObject request) {
         HttpPut httpPut;
 
-
-        uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
-        httpPut = new HttpPut(uri.toString());
-
+        if (request.getRestUrl().isEmpty()) {
+            uri = RestUtil.buildUri(BASE_URL, request.getEndpoint(), request.getQueryParams());
+            httpPut = new HttpPut(uri.toString());
+        } else {
+            httpPut = new HttpPut(request.getRestUrl());
+        }
 
         if (request.getHeaders() != null) {
             for (Map.Entry<String, String> entry : request.getHeaders().entrySet()) {
@@ -144,9 +139,12 @@ public class RestClient implements Closeable {
     public ResponseObject patch(RequestObject request) {
         HttpPatch httpPatch;
 
-        uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
-        httpPatch = new HttpPatch(uri.toString());
-
+        if (request.getRestUrl().isEmpty()) {
+            uri = RestUtil.buildUri(BASE_URL, request.getEndpoint(), request.getQueryParams());
+            httpPatch = new HttpPatch(uri.toString());
+        } else {
+            httpPatch = new HttpPatch(request.getRestUrl());
+        }
 
         if (request.getHeaders() != null) {
             for (Map.Entry<String, String> entry : request.getHeaders().entrySet()) {
@@ -163,8 +161,12 @@ public class RestClient implements Closeable {
     public ResponseObject delete(RequestObject request) {
         HttpDelete httpDelete;
 
-        uri = RestUtil.buildUri(request.getBaseUrl(), request.getEndpoint(), request.getQueryParams(), this.isHttp);
-        httpDelete = new HttpDelete(uri.toString());
+        if (request.getRestUrl().isEmpty()) {
+            uri = RestUtil.buildUri(BASE_URL, request.getEndpoint(), request.getQueryParams());
+            httpDelete = new HttpDelete(uri.toString());
+        } else {
+            httpDelete = new HttpDelete(request.getRestUrl());
+        }
 
         if (request.getHeaders() != null) {
             for (Map.Entry<String, String> entry : request.getHeaders().entrySet()) {
@@ -182,21 +184,24 @@ public class RestClient implements Closeable {
             CloseableHttpResponse httpResponse = httpClient.execute(requestBase);
             responseObject = getResponse(httpResponse);
         } catch (IOException ex) {
-            logger.error("", ex);
+            LOG.error("Failed to execute request", ex);
         }
+
         return responseObject;
     }
 
     public ResponseObject getResponse(CloseableHttpResponse response) throws IOException {
         ResponseHandler<String> handler = new CustomResponseHandler();
         String responseBody = handler.handleResponse(response);
+        JsonElement jsonResponse = JsonUtil.parse(responseBody);
         int statusCode = response.getStatusLine().getStatusCode();
         Header[] headers = response.getAllHeaders();
         Map<String, String> responseHeader = new HashMap<>();
         for (Header header : headers) {
             responseHeader.put(header.getName(), header.getValue());
         }
-        return new ResponseObject(statusCode, responseBody, responseHeader);
+
+        return new ResponseObject(statusCode, jsonResponse, responseHeader);
     }
 
     private void setDefaultHeaderIfHasBodyContent(RequestObject request) {
@@ -210,7 +215,7 @@ public class RestClient implements Closeable {
         try {
             this.httpClient.close();
         } catch (IOException ex) {
-            logger.error("Unable to close httpclient", ex);
+            LOG.error("Unable to close httpclient", ex);
         }
     }
 }
