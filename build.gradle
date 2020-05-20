@@ -38,5 +38,6 @@ tasks.withType(JavaCompile) {
 }
 
 test {
+    testLogging.showStandardStreams = true
     useTestNG()
 }

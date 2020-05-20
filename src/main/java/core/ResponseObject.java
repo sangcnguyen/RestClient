@@ -1,15 +1,16 @@
 package core;
 
+import com.google.gson.JsonElement;
 import util.JsonUtil;
 
 import java.util.Map;
 
 public class ResponseObject {
     private int statusCode;
-    private String body;
+    private JsonElement body;
     private Map<String, String> headers;
 
-    public ResponseObject(int statusCode, String body, Map<String, String> header) {
+    public ResponseObject(int statusCode, JsonElement body, Map<String, String> header) {
         this.statusCode = statusCode;
         this.body = body;
         this.headers = header;
@@ -19,7 +20,7 @@ public class ResponseObject {
         return this.statusCode;
     }
 
-    public String getBody() {
+    public JsonElement getBody() {
         return this.body;
     }
 
@@ -29,8 +30,10 @@ public class ResponseObject {
 
     @Override
     public String toString() {
-        return "Status code: " + getStatusCode() +
-                "\nHeaders: " + getHeaders() +
-                "\nResponse: \n" + JsonUtil.getPrettyString(getBody());
+        return "ResponseObject { " +
+                "statusCode=" + statusCode +
+                ", headers=" + headers +
+                ", \nbody=" + JsonUtil.getPrettyString(body) +
+                "}";
     }
 }

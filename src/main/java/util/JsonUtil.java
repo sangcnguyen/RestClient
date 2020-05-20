@@ -11,16 +11,18 @@ public class JsonUtil {
         throw new IllegalStateException("Can't instantiate the JsonUtil class");
     }
 
-
-    public static String getPrettyString(String jsonString) {
-        if (jsonString != null) {
+    public static String getPrettyString(JsonElement jsonObject) {
+        if (jsonObject != null) {
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-            return gson.toJson(parse(jsonString));
+            return gson.toJson(jsonObject);
         }
         return null;
     }
 
-    private static JsonElement parse(String jsonString) {
-        return JsonParser.parseString(jsonString);
+    public static JsonElement parse(String jsonString) {
+        if (jsonString != null) {
+            return JsonParser.parseString(jsonString);
+        }
+        return null;
     }
 }

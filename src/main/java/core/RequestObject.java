@@ -1,15 +1,17 @@
 package core;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import util.JsonUtil;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class RequestObject {
     private MethodType method;
-    private String baseUrl;
     private String endpoint;
-    private JsonObject body;
+    private String restUrl;
+    private JsonElement body;
     private final Map<String, String> headers;
     private final Map<String, String> queryParams;
 
@@ -21,8 +23,8 @@ public class RequestObject {
 
     public void reset() {
         this.clearMethod();
-        this.clearBaseUrl();
         this.clearEndpoint();
+        this.clearRestUrl();
         this.clearBody();
         this.clearHeaders();
         this.clearQueryParams();
@@ -48,12 +50,12 @@ public class RequestObject {
         this.method = method;
     }
 
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public void setRestUrl(String restUrl) {
+        this.restUrl = restUrl;
     }
 
     public void setBody(JsonObject body) {
@@ -72,15 +74,15 @@ public class RequestObject {
         return this.method;
     }
 
-    public String getBaseUrl() {
-        return this.baseUrl;
-    }
-
     public String getEndpoint() {
         return this.endpoint;
     }
 
-    public JsonObject getBody() {
+    public String getRestUrl() {
+        return this.restUrl;
+    }
+
+    public JsonElement getBody() {
         return this.body;
     }
 
@@ -88,12 +90,12 @@ public class RequestObject {
         this.method = null;
     }
 
-    private void clearBaseUrl() {
-        this.baseUrl = "";
-    }
-
     private void clearEndpoint() {
         this.endpoint = "";
+    }
+
+    private void clearRestUrl() {
+        this.restUrl = "";
     }
 
     private void clearBody() {
@@ -110,13 +112,13 @@ public class RequestObject {
 
     @Override
     public String toString() {
-        return "RequestObject{ " +
+        return "RequestObject { " +
                 "method=" + method +
-                ", baseUrl='" + baseUrl + '\'' +
                 ", endpoint='" + endpoint + '\'' +
-                ", body='" + body + '\'' +
-                ", headers=" + headers +
+                ", restUrl='" + restUrl + '\'' +
+                ", \nbody=" + JsonUtil.getPrettyString(body) +
+                ", \nheaders=" + headers +
                 ", queryParams=" + queryParams +
-                " }";
+                '}';
     }
 }
